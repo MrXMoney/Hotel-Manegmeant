@@ -10,7 +10,7 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f0f2f5;
+      background-color: #f2f3f8;
       margin: 0;
       padding: 0;
     }
@@ -53,13 +53,16 @@
       padding: 10px;
     }
     .card {
-      background: #fff;
+      background: white;
       border-radius: 12px;
       padding: 15px;
       margin: 10px;
-      width: 320px;
+      width: 350px;
       box-shadow: 0 6px 12px rgba(0,0,0,0.1);
       transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
     .card:hover {
       transform: scale(1.02);
@@ -75,7 +78,7 @@
     .card img {
       max-width: 100%;
       margin-top: 10px;
-      border-radius: 5px;
+      border-radius: 6px;
     }
     .delete-btn {
       background-color: crimson;
@@ -84,8 +87,18 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      margin-top: 10px;
-      margin-right: 5px;
+    }
+    .action-btn {
+      background-color: #4b2e83;
+      margin-left: 5px;
+    }
+    .label {
+      background: #e2e8f0;
+      display: inline-block;
+      padding: 3px 8px;
+      margin: 2px 0;
+      border-radius: 4px;
+      font-size: 12px;
     }
   </style>
 </head>
@@ -102,7 +115,7 @@
     <input type="date" id="endDate" placeholder="To" />
     <button onclick="applyFilter()">Search</button>
     <button onclick="exportToExcel()">Export to Excel</button>
-    <button onclick="window.print()">Print</button>
+    <button onclick="window.print()">Print All</button>
   </div>  <div class="analytics" id="analytics"></div>
   <div class="container" id="cardContainer"></div>  <script>
     const firebaseConfig = {
@@ -138,17 +151,30 @@
         card.innerHTML = `
           <div id="${uniqueId}">
             <h3>${d.guestName || "Unknown Guest"}</h3>
-            <p><b>Room:</b> ${d.roomType}</p>
-            <p><b>Mobile:</b> ${d.mobile}</p>
-            <p><b>Arrival:</b> ${d.arrival}</p>
-            <p><b>Departure:</b> ${d.departure}</p>
-            <p><b>Payment:</b> ${d.paymentMode}</p>
-            <p><b>City:</b> ${d.city}</p>
-            ${d.idFront ? `<img src="${d.idFront}" alt="ID Front"/>` : ""}
+            <p><span class='label'>Reservation:</span> ${d.reservation}</p>
+            <p><span class='label'>Room:</span> ${d.roomType}</p>
+            ${[1,2,3,4,5,6].map(i => d['multiRoom'+i] ? `<p><span class='label'>Multi Room ${i}:</span> ${d['multiRoom'+i]}</p>` : '').join('')}
+            <p><span class='label'>Arrival:</span> ${d.arrival}</p>
+            <p><span class='label'>Departure:</span> ${d.departure}</p>
+            <p><span class='label'>Mobile:</span> ${d.mobile}</p>
+            <p><span class='label'>DOB:</span> ${d.dob || ""}</p>
+            <p><span class='label'>Nationality:</span> ${d.nationality}</p>
+            <p><span class='label'>NID:</span> ${d.nid}</p>
+            <p><span class='label'>Passport:</span> ${d.passport}</p>
+            <p><span class='label'>City:</span> ${d.city}</p>
+            <p><span class='label'>Company:</span> ${d.company}</p>
+            <p><span class='label'>Extra Bed:</span> ${d.extraBed}</p>
+            <p><span class='label'>Adult:</span> ${d.adult}, <span class='label'>Infant:</span> ${d.infant}</p>
+            <p><span class='label'>Payment Mode:</span> ${d.paymentMode}</p>
+            ${d.address ? `<p><span class='label'>Address:</span> ${d.address}</p>` : ''}
+            ${d.idFront ? `<img src="${d.idFront}" alt="ID Front"/>` : ''}
+            ${d.idBack ? `<img src="${d.idBack}" alt="ID Back"/>` : ''}
+            ${d.signature ? `<img src="${d.signature}" alt="Signature"/>` : ''}
           </div>
           <button class="delete-btn" onclick="deleteGuest('${d.reservation}')">Delete</button>
-          <button class="delete-btn" onclick="printSingle('${uniqueId}')">🖨️ Print This</button>
+          <button class="delete-btn action-btn" onclick="printSingle('${uniqueId}')">🖨️ Print This</button>
         `;
+
         cardContainer.appendChild(card);
 
         if (d.roomType) roomTypeCount[d.roomType] = (roomTypeCount[d.roomType] || 0) + 1;
