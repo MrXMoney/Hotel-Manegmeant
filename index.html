@@ -67,19 +67,32 @@
       margin-top: -10px;
       margin-bottom: 15px;
     }
+    /* Toast style */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #38a169;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 8px;
+      display: none;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Welcome To Joltorongo Check-In Procedure</h2>
     <form id="checkinForm">
-      <!-- Reservation Number -->
       <div class="form-group">
         <label>Reservation Number</label>
         <input type="text" id="reservation" required />
       </div>
 
-      <!-- Arrival & Departure -->
       <div class="form-group">
         <label>Arrival Date</label>
         <input type="date" id="arrivalDate" required />
@@ -95,7 +108,6 @@
         <input type="tel" id="mobile" required />
       </div>
 
-      <!-- Room Types -->
       <div class="form-group">
         <label>Room Type</label>
         <select id="roomType" required>
@@ -117,26 +129,36 @@
       </div>
 
       <!-- Multi Room Types -->
-      ${[1,2,3,4,5,6].map(i => `
-      <div class="form-group">
-        <label>Multi Room Type ${i}</label>
-        <select id="multiRoom${i}" required>
-          <option value="">Select Room Type</option>
-          <option>Economy Queen Deluxe (Ground Floor, No View)</option>
-          <option>Economy Twin Deluxe (Ground Floor, Garden View)</option>
-          <option>Standard King Deluxe (No View)</option>
-          <option>Superior Queen Deluxe (City View)</option>
-          <option>Superior Queen Deluxe (Garden Sea View)</option>
-          <option>Economy Suite (No View)</option>
-          <option>Executive King Deluxe (Sea View)</option>
-          <option>Executive King Deluxe (Garden Sea View)</option>
-          <option>Superior Suite (City View)</option>
-          <option>Executive Suite (Sea View)</option>
-          <option>Panoramic Suite (Sea View)</option>
-          <option>Premier Suite (Partial Sea View)</option>
-          <option>Royal Panoramic Suite (Sea View)</option>
-        </select>
-      </div>`).join('')}
+      <div id="multiRoomContainer"></div>
+
+      <script>
+        const multiRoomHTML = i => `
+          <div class="form-group">
+            <label>Multi Room Type ${i}</label>
+            <select id="multiRoom${i}" required>
+              <option value="">Select Room Type</option>
+              <option>Economy Queen Deluxe (Ground Floor, No View)</option>
+              <option>Economy Twin Deluxe (Ground Floor, Garden View)</option>
+              <option>Standard King Deluxe (No View)</option>
+              <option>Superior Queen Deluxe (City View)</option>
+              <option>Superior Queen Deluxe (Garden Sea View)</option>
+              <option>Economy Suite (No View)</option>
+              <option>Executive King Deluxe (Sea View)</option>
+              <option>Executive King Deluxe (Garden Sea View)</option>
+              <option>Superior Suite (City View)</option>
+              <option>Executive Suite (Sea View)</option>
+              <option>Panoramic Suite (Sea View)</option>
+              <option>Premier Suite (Partial Sea View)</option>
+              <option>Royal Panoramic Suite (Sea View)</option>
+            </select>
+          </div>`;
+        document.addEventListener("DOMContentLoaded", () => {
+          const container = document.getElementById("multiRoomContainer");
+          for (let i = 1; i <= 6; i++) {
+            container.innerHTML += multiRoomHTML(i);
+          }
+        });
+      </script>
 
       <div class="form-group">
         <label>Guest Name</label>
@@ -227,8 +249,10 @@
     </form>
   </div>
 
+  <!-- ✅ Toast Message -->
+  <div id="toast">✅ আপনার তথ্য লোকাল সার্ভারে সেভ হয়েছে!</div>
+
   <script>
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBfW5tyaRjCOWM8OAzKFJmgWR075YBw7Ig",
       authDomain: "hotel-maneger.firebaseapp.com",
@@ -243,7 +267,7 @@
     const db = firebase.database();
     const storage = firebase.storage();
 
-    // Signature Drawing
+    // Signature
     const canvas = document.getElementById("signatureCanvas");
     const ctx = canvas.getContext("2d");
     let drawing = false, lastX = 0, lastY = 0;
@@ -256,20 +280,27 @@
     resizeCanvas();
 
     function getPos(e) {
-      return e.touches ? 
+      return e.touches ?
         { x: e.touches[0].clientX - canvas.getBoundingClientRect().left, y: e.touches[0].clientY - canvas.getBoundingClientRect().top } :
         { x: e.clientX - canvas.getBoundingClientRect().left, y: e.clientY - canvas.getBoundingClientRect().top };
     }
 
-    function startDraw(e) { drawing = true; const pos = getPos(e); lastX = pos.x; lastY = pos.y; e.preventDefault(); }
+    function startDraw(e) {
+      drawing = true;
+      const pos = getPos(e);
+      lastX = pos.x; lastY = pos.y;
+      e.preventDefault();
+    }
     function draw(e) {
       if (!drawing) return;
       const pos = getPos(e);
       ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(pos.x, pos.y);
       ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.stroke(); ctx.closePath();
-      lastX = pos.x; lastY = pos.y; e.preventDefault();
+      lastX = pos.x; lastY = pos.y;
+      e.preventDefault();
     }
     function stopDraw() { drawing = false; }
+    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
     canvas.addEventListener("mousedown", startDraw);
     canvas.addEventListener("mousemove", draw);
@@ -280,8 +311,14 @@
     canvas.addEventListener("touchend", stopDraw);
     canvas.addEventListener("touchcancel", stopDraw);
 
-    function clearCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Toast function
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.style.display = "block";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 4000);
     }
 
     // Night calculation
@@ -299,14 +336,12 @@
         nights.innerText = "";
       }
     }
-
     arrival.addEventListener("change", calculateNights);
     departure.addEventListener("change", calculateNights);
 
-    // Form Submission
+    // Submit form
     document.getElementById("checkinForm").addEventListener("submit", async function (e) {
       e.preventDefault();
-
       const reservation = document.getElementById("reservation").value;
       const formData = {
         reservation,
@@ -327,16 +362,11 @@
         adult: document.getElementById("adult").value,
         infant: document.getElementById("infant").value,
       };
-
-      // Multi Room Types
       for (let i = 1; i <= 6; i++) {
         formData[`multiRoom${i}`] = document.getElementById(`multiRoom${i}`).value;
       }
-
-      // Signature
       formData.signature = canvas.toDataURL();
 
-      // Upload ID Images
       const idFront = document.getElementById("idFront").files[0];
       const idBack = document.getElementById("idBack").files[0];
 
@@ -345,17 +375,16 @@
         await ref.put(file);
         return await ref.getDownloadURL();
       };
-
       if (idFront) formData.idFront = await uploadFile(idFront, "idFront.jpg");
       if (idBack) formData.idBack = await uploadFile(idBack, "idBack.jpg");
 
       await db.ref("checkins/" + reservation).set(formData);
-      alert("Check-in data submitted successfully!");
 
+      showToast("✅ আপনার তথ্য লোকাল সার্ভারে সেভ হয়েছে!");
       this.reset();
       clearCanvas();
       nights.innerText = "";
     });
   </script>
 </body>
-  </html>
+</html>
