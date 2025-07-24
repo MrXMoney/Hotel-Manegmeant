@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -10,31 +9,42 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #edf2f7;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
       margin: 0;
       padding: 0;
     }
     h1 {
       text-align: center;
       color: #4b2e83;
-      margin-top: 20px;
+      margin: 20px 0 10px;
     }
-    .btn-group {
-      text-align: center;
-      margin: 10px;
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px auto;
+      padding: 10px;
     }
-    .btn-group button {
-      padding: 10px 20px;
-      margin: 5px;
-      background: #4b2e83;
+    .toolbar input, .toolbar select, .toolbar button {
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .toolbar button {
+      background-color: #4b2e83;
       color: white;
-      border: none;
-      border-radius: 5px;
       cursor: pointer;
     }
-    .btn-group button:hover {
-      background: #3a2165;
+    .toolbar button:hover {
+      background-color: #3a2165;
+    }
+    .analytics {
+      text-align: center;
+      margin: 10px 0;
+      font-weight: bold;
     }
     .container {
       display: flex;
@@ -43,17 +53,20 @@
       padding: 10px;
     }
     .card {
-      background: white;
-      border-radius: 10px;
+      background: #fff;
+      border-radius: 12px;
       padding: 15px;
       margin: 10px;
-      width: 300px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transform: rotateX(2deg) rotateY(1deg);
+      width: 320px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.02);
     }
     .card h3 {
-      margin-top: 0;
-      color: #2d3748;
+      margin: 0;
+      color: #333;
     }
     .card p {
       margin: 4px 0;
@@ -64,20 +77,33 @@
       margin-top: 10px;
       border-radius: 5px;
     }
+    .delete-btn {
+      background-color: crimson;
+      color: white;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>Joltorongo Admin Panel</h1>
-
-  <div class="btn-group">
+  <h1>Joltorongo Admin Panel</h1>  <div class="toolbar">
+    <select id="filterRoomType">
+      <option value="">All Room Types</option>
+      <option>Economy Queen Deluxe (Ground Floor, No View)</option>
+      <option>Executive King Deluxe (Sea View)</option>
+      <option>Panoramic Suite (Sea View)</option>
+      <!-- Add other room types here -->
+    </select>
+    <input type="date" id="startDate" placeholder="From" />
+    <input type="date" id="endDate" placeholder="To" />
+    <button onclick="applyFilter()">Search</button>
     <button onclick="exportToExcel()">Export to Excel</button>
     <button onclick="window.print()">Print</button>
-  </div>
-
-  <div class="container" id="cardContainer"></div>
-
-  <script>
-    // Firebase config
+  </div>  <div class="analytics" id="analytics"></div>
+  <div class="container" id="cardContainer"></div>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBfW5tyaRjCOWM8OAzKFJmgWR075YBw7Ig",
       authDomain: "hotel-maneger.firebaseapp.com",
@@ -90,35 +116,55 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const cardContainer = document.getElementById("cardContainer");
     let allData = [];
+    const cardContainer = document.getElementById("cardContainer");
 
     db.ref("checkins").on("value", (snapshot) => {
-      cardContainer.innerHTML = "";
       allData = [];
-      snapshot.forEach((child) => {
-        const data = child.val();
-        allData.push(data);
+      snapshot.forEach(child => allData.push(child.val()));
+      displayData(allData);
+    });
 
+    function displayData(data) {
+      cardContainer.innerHTML = "";
+      const roomTypeCount = {};
+
+      data.forEach(d => {
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
-          <h3>${data.guestName || "No Name"}</h3>
-          <p><b>Reservation:</b> ${data.reservation}</p>
-          <p><b>Mobile:</b> ${data.mobile}</p>
-          <p><b>Room Type:</b> ${data.roomType}</p>
-          <p><b>Arrival:</b> ${data.arrival}</p>
-          <p><b>Departure:</b> ${data.departure}</p>
-          <p><b>City:</b> ${data.city}</p>
-          <p><b>Payment:</b> ${data.paymentMode}</p>
-          <p><b>Company:</b> ${data.company}</p>
-          <p><b>Nationality:</b> ${data.nationality}</p>
-          ${data.idFront ? `<img src="${data.idFront}" alt="ID Front"/>` : ""}
-          ${data.idBack ? `<img src="${data.idBack}" alt="ID Back"/>` : ""}
+          <h3>${d.guestName || "Unknown Guest"}</h3>
+          <p><b>Room:</b> ${d.roomType}</p>
+          <p><b>Mobile:</b> ${d.mobile}</p>
+          <p><b>Arrival:</b> ${d.arrival}</p>
+          <p><b>Departure:</b> ${d.departure}</p>
+          <p><b>Payment:</b> ${d.paymentMode}</p>
+          <p><b>City:</b> ${d.city}</p>
+          <button class="delete-btn" onclick="deleteGuest('${d.reservation}')">Delete</button>
+          ${d.idFront ? `<img src="${d.idFront}" alt="ID Front"/>` : ""}
         `;
         cardContainer.appendChild(card);
+
+        if (d.roomType) roomTypeCount[d.roomType] = (roomTypeCount[d.roomType] || 0) + 1;
       });
-    });
+
+      document.getElementById("analytics").innerText =
+        Object.entries(roomTypeCount).map(([k,v]) => `${k}: ${v}`).join(" | ") || "No data";
+    }
+
+    function applyFilter() {
+      const type = document.getElementById("filterRoomType").value;
+      const start = new Date(document.getElementById("startDate").value);
+      const end = new Date(document.getElementById("endDate").value);
+
+      const filtered = allData.filter(d => {
+        const matchRoom = !type || d.roomType === type;
+        const matchDate = (!isNaN(start) && !isNaN(end)) ?
+          (new Date(d.arrival) >= start && new Date(d.arrival) <= end) : true;
+        return matchRoom && matchDate;
+      });
+      displayData(filtered);
+    }
 
     function exportToExcel() {
       const wb = XLSX.utils.book_new();
@@ -126,6 +172,13 @@
       XLSX.utils.book_append_sheet(wb, ws, "CheckIns");
       XLSX.writeFile(wb, "Joltorongo_Checkins.xlsx");
     }
-  </script>
-</body>
+
+    function deleteGuest(reservation) {
+      if (confirm("Are you sure you want to delete this record?")) {
+        db.ref("checkins/" + reservation).remove().then(() => {
+          alert("Deleted successfully");
+        });
+      }
+    }
+  </script></body>
 </html>
