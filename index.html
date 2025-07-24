@@ -4,9 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Joltorongo Hotel Check-In</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -73,12 +76,10 @@
   <div class="container">
     <h2>Welcome To Joltorongo Check-In Procedure</h2>
     <form id="checkinForm">
-
       <div class="form-group">
         <label>Reservation Number</label>
         <input type="text" id="reservation" required />
       </div>
-
       <div class="form-group">
         <label>Arrival Date</label>
         <input type="date" id="arrivalDate" required />
@@ -88,12 +89,10 @@
         <input type="date" id="departureDate" required />
       </div>
       <div class="nights-stayed" id="nightsStayed"></div>
-
       <div class="form-group">
         <label>Mobile Number</label>
         <input type="tel" id="mobile" required />
       </div>
-
       <div class="form-group">
         <label>Room Type</label>
         <select id="roomType" required>
@@ -138,85 +137,20 @@
         </div>`).join(''));
       </script>
 
-      <div class="form-group">
-        <label>Guest Name</label>
-        <input type="text" id="guestName" required />
-      </div>
-
-      <div class="form-group">
-        <label>Extra Bed</label>
-        <select id="extraBed">
-          <option>No</option>
-          <option>Yes</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>City</label>
-        <input type="text" id="city" required />
-      </div>
-
-      <div class="form-group">
-        <label>Address</label>
-        <textarea id="address" rows="3"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Payment Mode</label>
-        <select id="paymentMode">
-          <option>Cash</option>
-          <option>Credit Card</option>
-          <option>Debit Card</option>
-          <option>Bank</option>
-          <option>Mobile Banking</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Company</label>
-        <input type="text" id="company" required />
-      </div>
-
-      <div class="form-group">
-        <label>Passport/License Number</label>
-        <input type="text" id="passport" />
-      </div>
-
-      <div class="form-group">
-        <label>ID Front Image</label>
-        <input type="file" id="idFront" accept="image/*" capture="environment" />
-      </div>
-
-      <div class="form-group">
-        <label>ID Back Image</label>
-        <input type="file" id="idBack" accept="image/*" capture="environment" />
-      </div>
-
-      <div class="form-group">
-        <label>Date of Birth</label>
-        <input type="date" id="dob" />
-      </div>
-
-      <div class="form-group">
-        <label>Nationality</label>
-        <input type="text" id="nationality" required />
-      </div>
-
-      <div class="form-group">
-        <label>NID Number</label>
-        <input type="text" id="nid" />
-      </div>
-
-      <div class="form-group">
-        <label>Adult</label>
-        <input type="number" id="adult" />
-      </div>
-
-      <div class="form-group">
-        <label>Infant</label>
-        <input type="number" id="infant" />
-      </div>
-
+      <div class="form-group"><label>Guest Name</label><input type="text" id="guestName" required /></div>
+      <div class="form-group"><label>Extra Bed</label><select id="extraBed"><option>No</option><option>Yes</option></select></div>
+      <div class="form-group"><label>City</label><input type="text" id="city" required /></div>
+      <div class="form-group"><label>Address</label><textarea id="address" rows="3"></textarea></div>
+      <div class="form-group"><label>Payment Mode</label><select id="paymentMode"><option>Cash</option><option>Credit Card</option><option>Debit Card</option><option>Bank</option><option>Mobile Banking</option></select></div>
+      <div class="form-group"><label>Company</label><input type="text" id="company" required /></div>
+      <div class="form-group"><label>Passport/License Number</label><input type="text" id="passport" /></div>
+      <div class="form-group"><label>ID Front Image</label><input type="file" id="idFront" accept="image/*" capture="environment" /></div>
+      <div class="form-group"><label>ID Back Image</label><input type="file" id="idBack" accept="image/*" capture="environment" /></div>
+      <div class="form-group"><label>Date of Birth</label><input type="date" id="dob" /></div>
+      <div class="form-group"><label>Nationality</label><input type="text" id="nationality" required /></div>
+      <div class="form-group"><label>NID Number</label><input type="text" id="nid" /></div>
+      <div class="form-group"><label>Adult</label><input type="number" id="adult" /></div>
+      <div class="form-group"><label>Infant</label><input type="number" id="infant" /></div>
       <div class="form-group">
         <label>Signature (Draw with finger or mouse)</label>
         <canvas id="signatureCanvas"></canvas>
@@ -236,8 +170,7 @@
       projectId: "hotel-maneger",
       storageBucket: "hotel-maneger.appspot.com",
       messagingSenderId: "146279207135",
-      appId: "1:146279207135:web:93dcc7e2ddf70208a1196a",
-      measurementId: "G-C54K5RXSYJ"
+      appId: "1:146279207135:web:93dcc7e2ddf70208a1196a"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -247,46 +180,26 @@
     const canvas = document.getElementById("signatureCanvas");
     const ctx = canvas.getContext("2d");
     let drawing = false, lastX = 0, lastY = 0;
-
     function resizeCanvas() {
       canvas.width = canvas.clientWidth;
       canvas.height = canvas.clientHeight;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-
     function getPos(e) {
-      return e.touches ?
-        { x: e.touches[0].clientX - canvas.getBoundingClientRect().left, y: e.touches[0].clientY - canvas.getBoundingClientRect().top } :
+      return e.touches ? { x: e.touches[0].clientX - canvas.getBoundingClientRect().left, y: e.touches[0].clientY - canvas.getBoundingClientRect().top } :
         { x: e.clientX - canvas.getBoundingClientRect().left, y: e.clientY - canvas.getBoundingClientRect().top };
     }
-
-    function startDraw(e) {
-      drawing = true;
-      const pos = getPos(e);
-      lastX = pos.x;
-      lastY = pos.y;
-      e.preventDefault();
-    }
-
+    function startDraw(e) { drawing = true; const pos = getPos(e); lastX = pos.x; lastY = pos.y; e.preventDefault(); }
     function draw(e) {
       if (!drawing) return;
       const pos = getPos(e);
-      ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(pos.x, pos.y);
-      ctx.strokeStyle = "#000";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.closePath();
-      lastX = pos.x;
-      lastY = pos.y;
-      e.preventDefault();
+      ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(pos.x, pos.y);
+      ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.stroke(); ctx.closePath();
+      lastX = pos.x; lastY = pos.y; e.preventDefault();
     }
-
     function stopDraw() { drawing = false; }
     function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-
     canvas.addEventListener("mousedown", startDraw);
     canvas.addEventListener("mousemove", draw);
     canvas.addEventListener("mouseup", stopDraw);
@@ -296,11 +209,10 @@
     canvas.addEventListener("touchend", stopDraw);
     canvas.addEventListener("touchcancel", stopDraw);
 
-    // Night calculation
+    // Nights Calculation
     const arrival = document.getElementById("arrivalDate");
     const departure = document.getElementById("departureDate");
     const nights = document.getElementById("nightsStayed");
-
     function calculateNights() {
       const a = new Date(arrival.value);
       const d = new Date(departure.value);
@@ -311,20 +223,14 @@
         nights.innerText = "";
       }
     }
-
     arrival.addEventListener("change", calculateNights);
     departure.addEventListener("change", calculateNights);
 
-    // Form Submission
+    // Form Submit
     document.getElementById("checkinForm").addEventListener("submit", async function (e) {
       e.preventDefault();
-
       const reservation = document.getElementById("reservation").value.trim();
-      if (!reservation) {
-        alert("Reservation Number is required.");
-        return;
-      }
-
+      if (!reservation) return alert("Reservation Number is required.");
       const formData = {
         reservation,
         arrival: arrival.value,
@@ -344,11 +250,9 @@
         adult: document.getElementById("adult").value,
         infant: document.getElementById("infant").value,
       };
-
       for (let i = 1; i <= 6; i++) {
         formData[`multiRoom${i}`] = document.getElementById(`multiRoom${i}`).value;
       }
-
       formData.signature = canvas.toDataURL();
 
       const idFront = document.getElementById("idFront").files[0];
@@ -365,15 +269,13 @@
         if (idBack) formData.idBack = await uploadFile(idBack, "idBack.jpg");
 
         await db.ref("checkins/" + reservation).set(formData);
-
         alert("✅ আপনার দেওয়া তথ্য Local Database সার্ভারে Saved করা হয়েছে।");
-
         this.reset();
         clearCanvas();
         nights.innerText = "";
       } catch (error) {
-        console.error("Error saving check-in:", error);
-        alert("❌ ডেটা সংরক্ষণে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+        console.error("Error saving:", error);
+        alert("❌ ডেটা সংরক্ষণে সমস্যা হয়েছে।");
       }
     });
   </script>
