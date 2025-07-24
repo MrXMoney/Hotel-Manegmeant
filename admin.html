@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Joltorongo Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #edf2f7;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #4b2e83;
+    }
+    #guestContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .guest-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.08);
+    }
+    .guest-card h3 {
+      margin-top: 0;
+      color: #2c5282;
+    }
+    .guest-card p {
+      margin: 6px 0;
+      font-size: 14px;
+    }
+    .guest-card img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      margin-top: 10px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Joltorongo Hotel Admin Panel</h1>
+  <div id="guestContainer">Loading...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBfW5tyaRjCOWM8OAzKFJmgWR075YBw7Ig",
+      authDomain: "hotel-maneger.firebaseapp.com",
+      databaseURL: "https://hotel-maneger-default-rtdb.firebaseio.com",
+      projectId: "hotel-maneger",
+      storageBucket: "hotel-maneger.appspot.com",
+      messagingSenderId: "146279207135",
+      appId: "1:146279207135:web:93dcc7e2ddf70208a1196a",
+      measurementId: "G-C54K5RXSYJ"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const container = document.getElementById("guestContainer");
+
+    db.ref("guests").once("value", (snapshot) => {
+      container.innerHTML = ""; // clear 'Loading...'
+      const guests = snapshot.val();
+      if (!guests) {
+        container.innerHTML = "<p>No data found.</p>";
+        return;
+      }
+
+      Object.keys(guests).reverse().forEach((key) => {
+        const g = guests[key];
+        const card = document.createElement("div");
+        card.className = "guest-card";
+
+        card.innerHTML = `
+          <h3>${g.guestName || "Unnamed Guest"}</h3>
+          <p><strong>Reservation No:</strong> ${g.reservationNumber}</p>
+          <p><strong>Mobile:</strong> ${g.mobileNumber}</p>
+          <p><strong>Arrival:</strong> ${g.arrivalDate}</p>
+          <p><strong>Departure:</strong> ${g.departureDate}</p>
+          <p><strong>Room Type:</strong> ${g.roomType}</p>
+          <p><strong>Multi Rooms:</strong> ${[g.multiRoomType1, g.multiRoomType2, g.multiRoomType3, g.multiRoomType4, g.multiRoomType5, g.multiRoomType6].filter(Boolean).join(", ")}</p>
+          <p><strong>City:</strong> ${g.city}</p>
+          <p><strong>Address:</strong> ${g.address}</p>
+          <p><strong>Company:</strong> ${g.company}</p>
+          <p><strong>Payment Mode:</strong> ${g.paymentMode}</p>
+          <p><strong>Nationality:</strong> ${g.nationality}</p>
+          <p><strong>Adults:</strong> ${g.adult || 0} | <strong>Infants:</strong> ${g.infant || 0}</p>
+          <p><strong>Extra Bed:</strong> ${g.extraBed}</p>
+          <p><strong>Passport/License:</strong> ${g.passportNumber}</p>
+          <p><strong>NID:</strong> ${g.nidNumber}</p>
+          <p><strong>Date of Birth:</strong> ${g.dob}</p>
+          ${g.idFrontUrl ? `<img src="${g.idFrontUrl}" alt="ID Front Image"/>` : ""}
+          ${g.idBackUrl ? `<img src="${g.idBackUrl}" alt="ID Back Image"/>` : ""}
+          ${g.signatureUrl ? `<img src="${g.signatureUrl}" alt="Signature"/>` : ""}
+        `;
+
+        container.appendChild(card);
+      });
+    });
+  </script>
+</body>
+</html>
