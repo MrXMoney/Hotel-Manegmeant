@@ -2,122 +2,119 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Joltorongo Admin Panel</title>
+  <title>Joltorongo Admin Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f2f3f8;
       margin: 0;
-      padding: 0;
+      background-color: #f4f4f8;
     }
-    h1 {
-      text-align: center;
-      color: #4b2e83;
-      margin: 20px 0 10px;
-    }
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin: 10px auto;
-      padding: 10px;
-    }
-    .toolbar input, .toolbar select, .toolbar button {
-      padding: 10px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    .toolbar button {
+    header {
       background-color: #4b2e83;
       color: white;
-      cursor: pointer;
-    }
-    .toolbar button:hover {
-      background-color: #3a2165;
-    }
-    .analytics {
+      padding: 15px;
       text-align: center;
-      margin: 10px 0;
-      font-weight: bold;
     }
-    .container {
+    .dashboard {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      padding: 10px;
+      gap: 10px;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      flex: 1 1 250px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .charts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 20px;
+      padding: 20px;
+    }
+    canvas {
+      max-width: 500px;
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .toolbar {
+      text-align: center;
+      padding: 10px;
+    }
+    .toolbar input {
+      padding: 8px;
+      margin: 5px;
+    }
+    .card-container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
+      gap: 15px;
       padding: 10px;
     }
     .card {
-      background: white;
-      border-radius: 12px;
+      background: #fff;
       padding: 15px;
-      margin: 10px;
       width: 350px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .card:hover {
-      transform: scale(1.02);
+      border-radius: 10px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
     }
     .card h3 {
-      margin: 0;
-      color: #333;
+      margin: 0 0 10px;
     }
     .card p {
       margin: 4px 0;
-      font-size: 14px;
     }
     .card img {
       max-width: 100%;
-      margin-top: 10px;
-      border-radius: 6px;
+      border-radius: 5px;
+      margin-top: 5px;
     }
-    .delete-btn {
-      background-color: crimson;
-      color: white;
-      padding: 6px 10px;
+    .actions button {
+      margin-right: 5px;
+      padding: 5px 10px;
       border: none;
-      border-radius: 4px;
+      background: #4b2e83;
+      color: white;
+      border-radius: 5px;
       cursor: pointer;
     }
-    .action-btn {
-      background-color: #4b2e83;
-      margin-left: 5px;
-    }
-    .label {
-      background: #e2e8f0;
+    .status {
       display: inline-block;
       padding: 3px 8px;
-      margin: 2px 0;
-      border-radius: 4px;
+      border-radius: 20px;
       font-size: 12px;
+      background: #ddd;
     }
   </style>
 </head>
 <body>
-  <h1>Joltorongo Admin Panel</h1>  <div class="toolbar">
-    <select id="filterRoomType">
-      <option value="">All Room Types</option>
-      <option>Economy Queen Deluxe (Ground Floor, No View)</option>
-      <option>Executive King Deluxe (Sea View)</option>
-      <option>Panoramic Suite (Sea View)</option>
-      <!-- Add other room types here -->
-    </select>
-    <input type="date" id="startDate" placeholder="From" />
-    <input type="date" id="endDate" placeholder="To" />
-    <button onclick="applyFilter()">Search</button>
+  <header>
+    <h1>Joltorongo Admin Dashboard</h1>
+  </header>  <section class="dashboard">
+    <div class="box" id="totalGuests">Total Guests: 0</div>
+    <div class="box" id="roomBreakdown">Room Type Breakdown</div>
+    <div class="box" id="upcomingCheckouts">Upcoming Checkouts</div>
+  </section>  <section class="charts">
+    <canvas id="roomChart"></canvas>
+    <canvas id="dateChart"></canvas>
+  </section>  <div class="toolbar">
+    <input type="text" id="searchInput" placeholder="Search guest, mobile, reservation..." oninput="liveSearch()"/>
+    <button onclick="exportAllToPDF()">Export All to PDF</button>
     <button onclick="exportToExcel()">Export to Excel</button>
-    <button onclick="window.print()">Print All</button>
-  </div>  <div class="analytics" id="analytics"></div>
-  <div class="container" id="cardContainer"></div>  <script>
+  </div>  <section class="card-container" id="cardContainer"></section>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBfW5tyaRjCOWM8OAzKFJmgWR075YBw7Ig",
       authDomain: "hotel-maneger.firebaseapp.com",
@@ -130,96 +127,112 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let allData = [];
-    const cardContainer = document.getElementById("cardContainer");
+    let guestData = [];
 
-    db.ref("checkins").on("value", (snapshot) => {
-      allData = [];
-      snapshot.forEach(child => allData.push(child.val()));
-      displayData(allData);
+    db.ref("checkins").on("value", snapshot => {
+      guestData = [];
+      snapshot.forEach(child => guestData.push(child.val()));
+      renderDashboard();
+      renderCards(guestData);
     });
 
-    function displayData(data) {
-      cardContainer.innerHTML = "";
-      const roomTypeCount = {};
+    function renderDashboard() {
+      document.getElementById("totalGuests").innerText = `Total Guests: ${guestData.length}`;
+      const roomCount = {};
+      const dateCount = {};
+      const today = new Date().toISOString().split("T")[0];
+      let upcoming = 0;
 
+      guestData.forEach(g => {
+        roomCount[g.roomType] = (roomCount[g.roomType] || 0) + 1;
+        const arr = g.arrival;
+        dateCount[arr] = (dateCount[arr] || 0) + 1;
+        if (g.departure >= today) upcoming++;
+      });
+
+      document.getElementById("roomBreakdown").innerText = Object.entries(roomCount).map(([k,v]) => `${k}: ${v}`).join(" | ");
+      document.getElementById("upcomingCheckouts").innerText = `Upcoming Checkouts: ${upcoming}`;
+
+      const ctx1 = document.getElementById('roomChart').getContext('2d');
+      const ctx2 = document.getElementById('dateChart').getContext('2d');
+      new Chart(ctx1, {
+        type: 'pie',
+        data: {
+          labels: Object.keys(roomCount),
+          datasets: [{ data: Object.values(roomCount), backgroundColor: ['#4b2e83','#ff6384','#36a2eb','#ffce56'] }]
+        }
+      });
+      new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(dateCount),
+          datasets: [{ label: 'Check-ins', data: Object.values(dateCount), backgroundColor: '#4b2e83' }]
+        }
+      });
+    }
+
+    function renderCards(data) {
+      const container = document.getElementById("cardContainer");
+      container.innerHTML = "";
       data.forEach(d => {
         const card = document.createElement("div");
         card.className = "card";
-        const uniqueId = "card-" + d.reservation;
-
         card.innerHTML = `
-          <div id="${uniqueId}">
-            <h3>${d.guestName || "Unknown Guest"}</h3>
-            <p><span class='label'>Reservation:</span> ${d.reservation}</p>
-            <p><span class='label'>Room:</span> ${d.roomType}</p>
-            ${[1,2,3,4,5,6].map(i => d['multiRoom'+i] ? `<p><span class='label'>Multi Room ${i}:</span> ${d['multiRoom'+i]}</p>` : '').join('')}
-            <p><span class='label'>Arrival:</span> ${d.arrival}</p>
-            <p><span class='label'>Departure:</span> ${d.departure}</p>
-            <p><span class='label'>Mobile:</span> ${d.mobile}</p>
-            <p><span class='label'>DOB:</span> ${d.dob || ""}</p>
-            <p><span class='label'>Nationality:</span> ${d.nationality}</p>
-            <p><span class='label'>NID:</span> ${d.nid}</p>
-            <p><span class='label'>Passport:</span> ${d.passport}</p>
-            <p><span class='label'>City:</span> ${d.city}</p>
-            <p><span class='label'>Company:</span> ${d.company}</p>
-            <p><span class='label'>Extra Bed:</span> ${d.extraBed}</p>
-            <p><span class='label'>Adult:</span> ${d.adult}, <span class='label'>Infant:</span> ${d.infant}</p>
-            <p><span class='label'>Payment Mode:</span> ${d.paymentMode}</p>
-            ${d.address ? `<p><span class='label'>Address:</span> ${d.address}</p>` : ''}
-            ${d.idFront ? `<img src="${d.idFront}" alt="ID Front"/>` : ''}
-            ${d.idBack ? `<img src="${d.idBack}" alt="ID Back"/>` : ''}
-            ${d.signature ? `<img src="${d.signature}" alt="Signature"/>` : ''}
+          <h3>${d.guestName} <span class="status">Checked-In</span></h3>
+          <p><strong>Reservation:</strong> ${d.reservation}</p>
+          <p><strong>Room Type:</strong> ${d.roomType}</p>
+          <details><summary>Multi Rooms</summary>
+            ${[1,2,3,4,5,6].map(i => d[`multiRoom${i}`] ? `<p>Multi Room ${i}: ${d[`multiRoom${i}`]}</p>` : '').join('')}
+          </details>
+          <p><strong>Mobile:</strong> ${d.mobile}</p>
+          <p><strong>Arrival:</strong> ${d.arrival}</p>
+          <p><strong>Departure:</strong> ${d.departure}</p>
+          <p><strong>Company:</strong> ${d.company}</p>
+          <p><strong>NID:</strong> ${d.nid}</p>
+          <p><strong>Passport:</strong> ${d.passport}</p>
+          ${d.idFront ? `<img src="${d.idFront}" alt="ID Front"/>` : ''}
+          ${d.idBack ? `<img src="${d.idBack}" alt="ID Back"/>` : ''}
+          ${d.signature ? `<img src="${d.signature}" alt="Signature"/>` : ''}
+          <div class="actions">
+            <button onclick="downloadImage('${d.idFront}')">Download ID</button>
+            <button onclick="downloadImage('${d.signature}')">Download Signature</button>
+            <button onclick="exportCardToPDF(this.parentElement.parentElement)">PDF</button>
           </div>
-          <button class="delete-btn" onclick="deleteGuest('${d.reservation}')">Delete</button>
-          <button class="delete-btn action-btn" onclick="printSingle('${uniqueId}')">🖨️ Print This</button>
         `;
-
-        cardContainer.appendChild(card);
-
-        if (d.roomType) roomTypeCount[d.roomType] = (roomTypeCount[d.roomType] || 0) + 1;
+        container.appendChild(card);
       });
-
-      document.getElementById("analytics").innerText =
-        Object.entries(roomTypeCount).map(([k,v]) => `${k}: ${v}`).join(" | ") || "No data";
     }
 
-    function applyFilter() {
-      const type = document.getElementById("filterRoomType").value;
-      const start = new Date(document.getElementById("startDate").value);
-      const end = new Date(document.getElementById("endDate").value);
+    function downloadImage(url) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'image.jpg';
+      a.click();
+    }
 
-      const filtered = allData.filter(d => {
-        const matchRoom = !type || d.roomType === type;
-        const matchDate = (!isNaN(start) && !isNaN(end)) ?
-          (new Date(d.arrival) >= start && new Date(d.arrival) <= end) : true;
-        return matchRoom && matchDate;
-      });
-      displayData(filtered);
+    function exportCardToPDF(card) {
+      html2pdf().from(card).save();
+    }
+
+    function exportAllToPDF() {
+      html2pdf().from(document.getElementById('cardContainer')).save("AllGuests.pdf");
     }
 
     function exportToExcel() {
+      const ws = XLSX.utils.json_to_sheet(guestData);
       const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(allData);
-      XLSX.utils.book_append_sheet(wb, ws, "CheckIns");
-      XLSX.writeFile(wb, "Joltorongo_Checkins.xlsx");
+      XLSX.utils.book_append_sheet(wb, ws, "Guests");
+      XLSX.writeFile(wb, "Guests.xlsx");
     }
 
-    function deleteGuest(reservation) {
-      if (confirm("Are you sure you want to delete this record?")) {
-        db.ref("checkins/" + reservation).remove().then(() => {
-          alert("Deleted successfully");
-        });
-      }
-    }
-
-    function printSingle(id) {
-      const original = document.body.innerHTML;
-      const printContent = document.getElementById(id).innerHTML;
-      document.body.innerHTML = `<div style='padding:20px'>${printContent}</div>`;
-      window.print();
-      document.body.innerHTML = original;
-      location.reload();
+    function liveSearch() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = guestData.filter(g =>
+        g.guestName.toLowerCase().includes(query) ||
+        g.reservation.toLowerCase().includes(query) ||
+        g.mobile.toLowerCase().includes(query)
+      );
+      renderCards(filtered);
     }
   </script></body>
 </html>
