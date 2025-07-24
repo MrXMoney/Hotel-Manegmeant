@@ -3,128 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Joltorongo Hotel Admin Panel</title>
+  <title>Admin Panel - Joltorongo Hotel</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f4f8;
+      background: #e6ecf0;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 20px;
     }
     h1 {
       text-align: center;
+      color: #4b2e83;
+      margin-bottom: 30px;
+    }
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      perspective: 1000px;
+    }
+    .card:hover {
+      transform: translateY(-5px) rotateX(1deg);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+    }
+    .card h3 {
+      margin: 0 0 10px;
+      color: #4b2e83;
+    }
+    .card p {
+      margin: 4px 0;
+      font-size: 14px;
       color: #333;
     }
-    #guestContainer {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-    }
-    .guest-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      padding: 20px;
-      width: 350px;
-      max-width: 95%;
-    }
-    .guest-card h3 {
-      margin-top: 0;
-      color: #00695c;
-    }
-    .guest-card p {
-      margin: 6px 0;
-      font-size: 14px;
-    }
-    .guest-card img {
+    .card img {
       width: 100%;
-      max-height: 200px;
-      object-fit: contain;
-      margin: 10px 0;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      border-radius: 10px;
+      margin-top: 10px;
     }
-    @media screen and (max-width: 768px) {
-      .guest-card {
-        width: 90%;
-      }
+    .signature {
+      margin-top: 10px;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
-  <h1>Joltorongo Hotel – Admin Panel</h1>
-  <div id="guestContainer">Loading guest data...</div>
-
-  <!-- Firebase JS SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <h1>Admin Panel - Guest Check-ins</h1>
+  <div class="card-container" id="cardContainer"></div>
 
   <script>
-    // ✅ Firebase Config (as provided)
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBfW5tyaRjCOWM8OAzKFJmgWR075YBw7Ig",
       authDomain: "hotel-maneger.firebaseapp.com",
       databaseURL: "https://hotel-maneger-default-rtdb.firebaseio.com",
       projectId: "hotel-maneger",
-      storageBucket: "hotel-maneger.firebasestorage.app",
+      storageBucket: "hotel-maneger.appspot.com",
       messagingSenderId: "146279207135",
       appId: "1:146279207135:web:93dcc7e2ddf70208a1196a",
       measurementId: "G-C54K5RXSYJ"
     };
-
-    // ✅ Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const container = document.getElementById("guestContainer");
+    const container = document.getElementById("cardContainer");
 
-    db.ref("checkins").once("value")
-      .then(snapshot => {
-        container.innerHTML = "";
-        const data = snapshot.val();
-
-        if (!data) {
-          container.innerHTML = "<p>No check-in records found.</p>";
-          return;
-        }
-
-        Object.keys(data).reverse().forEach(key => {
-          const g = data[key];
-          const card = document.createElement("div");
-          card.className = "guest-card";
-
-          const multiRooms = [1,2,3,4,5,6].map(i => g[`multiRoom${i}`]).filter(Boolean).join(", ");
-
-          card.innerHTML = `
-            <h3>${g.guestName || "No Name"}</h3>
-            <p><strong>Reservation No:</strong> ${g.reservation || ""}</p>
-            <p><strong>Mobile:</strong> ${g.mobile || ""}</p>
-            <p><strong>Arrival:</strong> ${g.arrival || ""}</p>
-            <p><strong>Departure:</strong> ${g.departure || ""}</p>
-            <p><strong>Room Type:</strong> ${g.roomType || ""}</p>
-            <p><strong>Multi Rooms:</strong> ${multiRooms || "None"}</p>
-            <p><strong>City:</strong> ${g.city || ""}</p>
-            <p><strong>Address:</strong> ${g.address || ""}</p>
-            <p><strong>Company:</strong> ${g.company || ""}</p>
-            <p><strong>Payment Mode:</strong> ${g.paymentMode || ""}</p>
-            <p><strong>Date of Birth:</strong> ${g.dob || ""}</p>
-            <p><strong>Passport/License:</strong> ${g.passport || ""}</p>
-            <p><strong>NID Number:</strong> ${g.nid || ""}</p>
-            <p><strong>Adult:</strong> ${g.adult || "0"}, <strong>Infant:</strong> ${g.infant || "0"}</p>
-            <p><strong>Extra Bed:</strong> ${g.extraBed || "No"}</p>
-            ${g.idFront ? `<p><strong>ID Front:</strong><br><img src="${g.idFront}" alt="ID Front">` : ""}
-            ${g.idBack ? `<p><strong>ID Back:</strong><br><img src="${g.idBack}" alt="ID Back">` : ""}
-            ${g.signature ? `<p><strong>Signature:</strong><br><img src="${g.signature}" alt="Signature">` : ""}
-          `;
-
-          container.appendChild(card);
-        });
-      })
-      .catch(err => {
-        console.error(err);
-        container.innerHTML = "<p>Error loading guest data.</p>";
+    db.ref("checkins").on("value", snapshot => {
+      container.innerHTML = "";
+      snapshot.forEach(child => {
+        const data = child.val();
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${data.guestName}</h3>
+          <p><strong>Reservation:</strong> ${data.reservation}</p>
+          <p><strong>Mobile:</strong> ${data.mobile}</p>
+          <p><strong>Room:</strong> ${data.roomType}</p>
+          ${[1,2,3,4,5,6].map(i => data[`multiRoom${i}`] ? `<p><strong>Multi Room ${i}:</strong> ${data[`multiRoom${i}`]}</p>` : "").join('')}
+          <p><strong>Arrival:</strong> ${data.arrival}</p>
+          <p><strong>Departure:</strong> ${data.departure}</p>
+          <p><strong>City:</strong> ${data.city}</p>
+          <p><strong>Company:</strong> ${data.company}</p>
+          <p><strong>Nationality:</strong> ${data.nationality}</p>
+          <p><strong>Passport:</strong> ${data.passport}</p>
+          <p><strong>NID:</strong> ${data.nid}</p>
+          <p><strong>Payment:</strong> ${data.paymentMode}</p>
+          <p><strong>Extra Bed:</strong> ${data.extraBed}</p>
+          <p><strong>Adults:</strong> ${data.adult || '0'}, <strong>Infants:</strong> ${data.infant || '0'}</p>
+          ${data.idFront ? `<p><strong>ID Front:</strong><br><img src="${data.idFront}" />` : ""}
+          ${data.idBack ? `<p><strong>ID Back:</strong><br><img src="${data.idBack}" />` : ""}
+          ${data.signature ? `<p><strong>Signature:</strong><br><img src="${data.signature}" class="signature" />` : ""}
+        `;
+        container.appendChild(card);
       });
+    });
   </script>
 </body>
 </html>
