@@ -3,65 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel - Joltorongo Hotel</title>
+  <title>Joltorongo Admin Panel</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
   <style>
     body {
-      background: #e6ecf0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: Arial, sans-serif;
+      background-color: #edf2f7;
       margin: 0;
-      padding: 20px;
+      padding: 0;
     }
     h1 {
       text-align: center;
       color: #4b2e83;
-      margin-bottom: 30px;
+      margin-top: 20px;
     }
-    .card-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
+    .btn-group {
+      text-align: center;
+      margin: 10px;
+    }
+    .btn-group button {
+      padding: 10px 20px;
+      margin: 5px;
+      background: #4b2e83;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-group button:hover {
+      background: #3a2165;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
     }
     .card {
-      background: #fff;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      perspective: 1000px;
-    }
-    .card:hover {
-      transform: translateY(-5px) rotateX(1deg);
-      box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px;
+      width: 300px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transform: rotateX(2deg) rotateY(1deg);
     }
     .card h3 {
-      margin: 0 0 10px;
-      color: #4b2e83;
+      margin-top: 0;
+      color: #2d3748;
     }
     .card p {
       margin: 4px 0;
       font-size: 14px;
-      color: #333;
     }
     .card img {
-      width: 100%;
-      border-radius: 10px;
+      max-width: 100%;
       margin-top: 10px;
-    }
-    .signature {
-      margin-top: 10px;
-      border: 1px dashed #ccc;
-      border-radius: 8px;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <h1>Admin Panel - Guest Check-ins</h1>
-  <div class="card-container" id="cardContainer"></div>
+  <h1>Joltorongo Admin Panel</h1>
+
+  <div class="btn-group">
+    <button onclick="exportToExcel()">Export to Excel</button>
+    <button onclick="window.print()">Print</button>
+  </div>
+
+  <div class="container" id="cardContainer"></div>
 
   <script>
-    // Firebase Config
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBfW5tyaRjCOWM8OAzKFJmgWR075YBw7Ig",
       authDomain: "hotel-maneger.firebaseapp.com",
@@ -69,43 +85,47 @@
       projectId: "hotel-maneger",
       storageBucket: "hotel-maneger.appspot.com",
       messagingSenderId: "146279207135",
-      appId: "1:146279207135:web:93dcc7e2ddf70208a1196a",
-      measurementId: "G-C54K5RXSYJ"
+      appId: "1:146279207135:web:93dcc7e2ddf70208a1196a"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const container = document.getElementById("cardContainer");
+    const cardContainer = document.getElementById("cardContainer");
+    let allData = [];
 
-    db.ref("checkins").on("value", snapshot => {
-      container.innerHTML = "";
-      snapshot.forEach(child => {
+    db.ref("checkins").on("value", (snapshot) => {
+      cardContainer.innerHTML = "";
+      allData = [];
+      snapshot.forEach((child) => {
         const data = child.val();
+        allData.push(data);
+
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
-          <h3>${data.guestName}</h3>
-          <p><strong>Reservation:</strong> ${data.reservation}</p>
-          <p><strong>Mobile:</strong> ${data.mobile}</p>
-          <p><strong>Room:</strong> ${data.roomType}</p>
-          ${[1,2,3,4,5,6].map(i => data[`multiRoom${i}`] ? `<p><strong>Multi Room ${i}:</strong> ${data[`multiRoom${i}`]}</p>` : "").join('')}
-          <p><strong>Arrival:</strong> ${data.arrival}</p>
-          <p><strong>Departure:</strong> ${data.departure}</p>
-          <p><strong>City:</strong> ${data.city}</p>
-          <p><strong>Company:</strong> ${data.company}</p>
-          <p><strong>Nationality:</strong> ${data.nationality}</p>
-          <p><strong>Passport:</strong> ${data.passport}</p>
-          <p><strong>NID:</strong> ${data.nid}</p>
-          <p><strong>Payment:</strong> ${data.paymentMode}</p>
-          <p><strong>Extra Bed:</strong> ${data.extraBed}</p>
-          <p><strong>Adults:</strong> ${data.adult || '0'}, <strong>Infants:</strong> ${data.infant || '0'}</p>
-          ${data.idFront ? `<p><strong>ID Front:</strong><br><img src="${data.idFront}" />` : ""}
-          ${data.idBack ? `<p><strong>ID Back:</strong><br><img src="${data.idBack}" />` : ""}
-          ${data.signature ? `<p><strong>Signature:</strong><br><img src="${data.signature}" class="signature" />` : ""}
+          <h3>${data.guestName || "No Name"}</h3>
+          <p><b>Reservation:</b> ${data.reservation}</p>
+          <p><b>Mobile:</b> ${data.mobile}</p>
+          <p><b>Room Type:</b> ${data.roomType}</p>
+          <p><b>Arrival:</b> ${data.arrival}</p>
+          <p><b>Departure:</b> ${data.departure}</p>
+          <p><b>City:</b> ${data.city}</p>
+          <p><b>Payment:</b> ${data.paymentMode}</p>
+          <p><b>Company:</b> ${data.company}</p>
+          <p><b>Nationality:</b> ${data.nationality}</p>
+          ${data.idFront ? `<img src="${data.idFront}" alt="ID Front"/>` : ""}
+          ${data.idBack ? `<img src="${data.idBack}" alt="ID Back"/>` : ""}
         `;
-        container.appendChild(card);
+        cardContainer.appendChild(card);
       });
     });
+
+    function exportToExcel() {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(allData);
+      XLSX.utils.book_append_sheet(wb, ws, "CheckIns");
+      XLSX.writeFile(wb, "Joltorongo_Checkins.xlsx");
+    }
   </script>
 </body>
 </html>
