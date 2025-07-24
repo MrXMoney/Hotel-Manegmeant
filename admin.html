@@ -85,6 +85,7 @@
       border-radius: 4px;
       cursor: pointer;
       margin-top: 10px;
+      margin-right: 5px;
     }
   </style>
 </head>
@@ -132,16 +133,21 @@
       data.forEach(d => {
         const card = document.createElement("div");
         card.className = "card";
+        const uniqueId = "card-" + d.reservation;
+
         card.innerHTML = `
-          <h3>${d.guestName || "Unknown Guest"}</h3>
-          <p><b>Room:</b> ${d.roomType}</p>
-          <p><b>Mobile:</b> ${d.mobile}</p>
-          <p><b>Arrival:</b> ${d.arrival}</p>
-          <p><b>Departure:</b> ${d.departure}</p>
-          <p><b>Payment:</b> ${d.paymentMode}</p>
-          <p><b>City:</b> ${d.city}</p>
+          <div id="${uniqueId}">
+            <h3>${d.guestName || "Unknown Guest"}</h3>
+            <p><b>Room:</b> ${d.roomType}</p>
+            <p><b>Mobile:</b> ${d.mobile}</p>
+            <p><b>Arrival:</b> ${d.arrival}</p>
+            <p><b>Departure:</b> ${d.departure}</p>
+            <p><b>Payment:</b> ${d.paymentMode}</p>
+            <p><b>City:</b> ${d.city}</p>
+            ${d.idFront ? `<img src="${d.idFront}" alt="ID Front"/>` : ""}
+          </div>
           <button class="delete-btn" onclick="deleteGuest('${d.reservation}')">Delete</button>
-          ${d.idFront ? `<img src="${d.idFront}" alt="ID Front"/>` : ""}
+          <button class="delete-btn" onclick="printSingle('${uniqueId}')">🖨️ Print This</button>
         `;
         cardContainer.appendChild(card);
 
@@ -179,6 +185,15 @@
           alert("Deleted successfully");
         });
       }
+    }
+
+    function printSingle(id) {
+      const original = document.body.innerHTML;
+      const printContent = document.getElementById(id).innerHTML;
+      document.body.innerHTML = `<div style='padding:20px'>${printContent}</div>`;
+      window.print();
+      document.body.innerHTML = original;
+      location.reload();
     }
   </script></body>
 </html>
